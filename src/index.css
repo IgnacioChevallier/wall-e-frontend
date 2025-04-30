@@ -1,0 +1,371 @@
+/* Basic Reset & Body Styles */
+:root {
+  --primary-color: #007bff; /* Blue like PayPal/MP */
+  --primary-hover: #0056b3;
+  --text-color: #333;
+  --text-light: #666;
+  --background-light: #f4f4f8;
+  --background-white: #ffffff;
+  --border-color: #e0e0e0;
+  --success-bg: #d4edda;
+  --success-text: #155724;
+  --success-border: #c3e6cb;
+  --error-bg: #f8d7da;
+  --error-text: #721c24;
+  --error-border: #f5c6cb;
+  --income-color: #28a745; /* Green */
+  --expense-color: #dc3545; /* Red */
+  --navbar-height: 65px; /* Define navbar height as variable */
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background-light);
+  color: var(--text-color);
+  font-size: 16px; /* Base font size */
+  /* Prevent body scrolling on mobile if needed, handled by main-content */
+  /* overflow: hidden; */
+}
+
+html, body, #root {
+  height: 100%; /* Ensure root takes full height */
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+  display: flex; /* Needed for app-container height */
+  flex-direction: column;
+}
+
+/* App Container */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  /* min-height: 100vh; Remove this - handled by #root height */
+  flex-grow: 1; /* Take remaining height */
+  position: relative; /* Needed for fixed navbar positioning context */
+  overflow: hidden; /* Prevent app container itself from scrolling */
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 1rem;
+  /* Adjust padding-bottom to use variable */
+  padding-bottom: calc(var(--navbar-height) + 1rem); /* Space for bottom nav + some breathing room */
+  overflow-y: auto; /* Allow internal scrolling if content exceeds space */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* --- Common Components --- */
+
+/* Card style */
+.card {
+  background-color: var(--background-white);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+
+/* Button */
+.button {
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 25px; /* More rounded like mobile buttons */
+  border: none;
+  font-weight: 600;
+  background-color: var(--primary-color);
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  width: 100%; /* Make buttons full width in forms by default */
+  box-sizing: border-box;
+}
+
+.button:hover {
+  background-color: var(--primary-hover);
+}
+
+.button:active {
+  transform: scale(0.98);
+}
+
+.button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Input */
+.input-field {
+  width: 100%;
+  padding: 12px 15px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background-color: var(--background-white);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+}
+
+/* Feedback Message */
+.feedback-message {
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.feedback-message.success {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
+}
+
+.feedback-message.error {
+  background-color: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid var(--error-border);
+}
+
+/* --- Layout --- */
+
+/* Navigation Bar */
+.navbar {
+  position: fixed; /* Changed from absolute to fixed */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 1280px; /* Match #root max-width */
+  margin: 0 auto; /* Center the navbar */
+  height: var(--navbar-height);
+  background-color: var(--background-white);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  box-shadow: 0 -3px 6px rgba(0, 0, 0, 0.08);
+  z-index: 1000; /* Ensure navbar stays on top */
+}
+
+.navbar a, .navbar .navbar-button {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: var(--text-light);
+  padding: 5px 0;
+  font-size: 0.7rem; /* Smaller text for labels */
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.navbar a:hover, .navbar .navbar-button:hover {
+  color: var(--text-color);
+}
+
+/* Style for active NavLink */
+.navbar a.active {
+  color: var(--primary-color);
+}
+
+.navbar a.active .active-label {
+  font-weight: 600;
+}
+
+.navbar .logout-button {
+  color: var(--expense-color); /* Red for logout */
+}
+
+.navbar .logout-button:hover {
+  color: #a71d2a;
+}
+
+
+/* --- Page Specific Styles --- */
+
+/* Page Title */
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+/* Forms (Login, Register, Send, Add) */
+.form-container {
+  max-width: 450px;
+  margin: 1rem auto; /* Reduce top margin */
+  padding: 1.5rem;
+  background-color: transparent; /* Remove card look for auth forms */
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  text-align: left;
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: var(--text-color);
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.form-container label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-light);
+}
+
+.form-links {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.form-links a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.form-links a:hover {
+  text-decoration: underline;
+}
+
+/* Home Page - Inspired by "Account" */
+.home-page {
+  padding: 1rem 0; /* Reduce padding */
+}
+
+.balance-card {
+  /* Inherits .card style */
+  text-align: center;
+  padding: 1.5rem 1rem;
+}
+
+.balance-card p {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.balance-card h1 {
+  font-size: 2.8rem; /* Large balance */
+  margin: 0;
+  color: var(--text-color);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.quick-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* Make quick action links look like buttons */
+.quick-actions a .button {
+   width: auto; /* Override full width */
+   min-width: 120px;
+}
+
+/* History Page - Inspired by "Activity" */
+.history-page {
+   padding: 1rem 0;
+}
+
+.transaction-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  /* No explicit height needed, .main-content handles scroll */
+}
+
+.transaction-item {
+  /* Use .card styles */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+}
+
+/* Left side: Icon (optional) + Description + Date */
+.transaction-details {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+/* Placeholder for potential icon */
+.transaction-icon {
+  font-size: 1.5rem; /* Adjust as needed */
+  color: var(--text-light);
+}
+
+.transaction-info .description {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 0.1rem;
+  color: var(--text-color);
+}
+
+.transaction-info .date {
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+/* Right side: Amount */
+.transaction-item .amount {
+  font-weight: 600;
+  font-size: 0.95rem;
+  min-width: 80px; /* Align amounts */
+  text-align: right;
+}
+
+.transaction-item .amount.income {
+  color: var(--income-color);
+}
+
+.transaction-item .amount.expense {
+  color: var(--expense-color);
+}
+
+/* Send Money Page - Inspired by "Send to dovly" (Simplified) */
+.send-money-page .form-container,
+.add-money-page .form-container {
+    background-color: var(--background-white);
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid var(--border-color);
+    margin-top: 1rem;
+} 
