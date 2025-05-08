@@ -1,35 +1,36 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
-import Input from '../Common/Input';
-import Button from '../Common/Button';
-import FeedbackMessage from '../Common/FeedbackMessage';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import Input from "../Common/Input";
+import Button from "../Common/Button";
+import FeedbackMessage from "../Common/FeedbackMessage";
 
 const Register = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [feedback, setFeedback] = useState({ message: '', type: '' });
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [feedback, setFeedback] = useState({ message: "", type: "" });
   const { register, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFeedback({ message: '', type: '' }); // Clear previous feedback
+    setFeedback({ message: "", type: "" }); // Clear previous feedback
 
     if (password !== confirmPassword) {
-      setFeedback({ message: "Passwords do not match", type: 'error' });
+      setFeedback({ message: "Passwords do not match", type: "error" });
       return;
     }
 
     const result = await register(email, password);
 
     if (result.success) {
-      // Navigate to login page after successful registration (handled by useAuth)
-      // Optionally show success message before navigating (useAuth does this now)
-      alert(result.message); // Simple alert for now
+      
     } else {
-      setFeedback({ message: result.message || 'Registration failed', type: 'error' });
+      setFeedback({
+        message: result.message || "Registration failed",
+        type: "error",
+      });
     }
   };
 
@@ -72,7 +73,7 @@ const Register = () => {
           />
         </div>
         <Button type="submit" disabled={loading}>
-          {loading ? 'Registering...' : 'Register'}
+          {loading ? "Registering..." : "Register"}
         </Button>
       </form>
       <div className="form-links">
@@ -84,4 +85,4 @@ const Register = () => {
   );
 };
 
-export default Register; 
+export default Register;

@@ -6,8 +6,8 @@ import Button from '../Common/Button';
 import FeedbackMessage from '../Common/FeedbackMessage';
 
 const Login = () => {
-  const [email, setEmail] = useState('test@test.com'); // Pre-fill for demo
-  const [password, setPassword] = useState('password'); // Pre-fill for demo
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [feedback, setFeedback] = useState({ message: '', type: '' });
   const { login, loading } = useAuth();
   const navigate = useNavigate();
@@ -30,7 +30,6 @@ const Login = () => {
   return (
     <div className="form-container">
       <h2>Login</h2>
-      <FeedbackMessage message={feedback.message} type={feedback.type} />
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="email">Email</label>
@@ -54,6 +53,7 @@ const Login = () => {
             required
           />
         </div>
+        <FeedbackMessage message={feedback.message} type={feedback.type} />
         <Button type="submit" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </Button>
