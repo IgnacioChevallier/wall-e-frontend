@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getHistory } from '../services/api';
-import { FiArrowUpCircle, FiArrowDownCircle } from 'react-icons/fi'; // Icons for income/expense
+import { FiArrowUpCircle, FiArrowDownCircle } from 'react-icons/fi';
 
 const HistoryPage = () => {
   const [history, setHistory] = useState([]);

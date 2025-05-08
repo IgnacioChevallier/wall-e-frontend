@@ -15,7 +15,7 @@ export const useRegister = () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5173/auth/register', {
+      const response = await fetch('http://localhost:3000/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

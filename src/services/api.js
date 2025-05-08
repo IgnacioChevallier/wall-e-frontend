@@ -2,24 +2,6 @@
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-// --- Authentication ---
-export const loginUser = async (email, password) => {
-  console.log(`Simulating login for: ${email}`);
-  await delay(500); // Simulate network latency
-  // Basic validation for demo purposes
-  if (email === "test@test.com" && password === "password") {
-    return { success: true, message: "Login successful!", token: "fake-jwt-token" };
-  }
-  return { success: false, message: "Invalid email or password" };
-};
-
-export const registerUser = async (email, password) => {
-  console.log(`Simulating registration for: ${email}`);
-  await delay(700);
-  // Simulate successful registration
-  return { success: true, message: "Registration successful! Please log in." };
-};
-
 // --- Wallet Operations ---
 let currentBalance = 2927.00; // Initial dummy balance
 let transactionId = 0;

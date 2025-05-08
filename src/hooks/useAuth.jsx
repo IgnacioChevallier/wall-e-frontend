@@ -1,4 +1,4 @@
-import React, {createContext, useState, useContext, useMemo} from 'react';
+import React, {createContext, useState, useContext, useMemo, useEffect} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {useLogin} from './useLogin';
 import {useRegister} from './useRegister';
@@ -8,6 +8,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({children}) => {
     const [userToken, setUserToken] = useState(localStorage.getItem('userToken')); // Persist token
     const [error, setError] = useState(null);
+    const [justLoggedIn, setJustLoggedIn] = useState(false); // Added state
     const navigate = useNavigate();
 
     const {login: loginUser, loading: loginLoading, error: loginError} = useLogin();
@@ -17,9 +18,9 @@ export const AuthProvider = ({children}) => {
         try {
             const response = await loginUser(email, password);
             if (response.success) {
-                setUserToken(response.data.token);
-                localStorage.setItem('userToken', response.data.token); // Store token
-                navigate('/'); // Redirect to home on successful login
+                setUserToken(response.data.access_token);
+                localStorage.setItem('userToken', response.data.access_token); // Store token
+                setJustLoggedIn(true); // Set flag instead of direct navigation
                 return {success: true};
             } else {
                 setError(response.message);
@@ -52,8 +53,17 @@ export const AuthProvider = ({children}) => {
     const logout = () => {
         setUserToken(null);
         localStorage.removeItem('userToken'); // Remove token
+        setJustLoggedIn(false); // Reset flag on logout
         navigate('/login'); // Redirect to login on logout
     };
+
+    // Effect to handle navigation after login
+    useEffect(() => {
+        if (justLoggedIn && userToken) {
+            navigate('/'); // Redirect to home
+            setJustLoggedIn(false); // Reset the flag
+        }
+    }, [justLoggedIn, userToken, navigate]);
 
     // Memoize the context value to prevent unnecessary re-renders
     const value = useMemo(
