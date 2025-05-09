@@ -13,10 +13,12 @@ export const getBalance = async () => {
       ...getAuthHeaders(),
     },
   });
+  const data = await response.json();
+  console.log('Balance response:', data);
   if (!response.ok) {
-    throw new Error('Failed to fetch balance');
+    return { success: false, message: data.message || 'Failed to fetch balance' };
   }
-  return response.json();
+  return { success: true, balance: data.balance };
 };
 
 export const getHistory = async () => {

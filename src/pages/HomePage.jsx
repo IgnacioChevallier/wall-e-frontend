@@ -21,7 +21,6 @@ const HomePage = () => {
         }
       } catch (err) {
         setError('An error occurred while fetching balance');
-        console.error(err);
       } finally {
         setLoading(false);
       }
