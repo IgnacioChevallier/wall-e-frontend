@@ -1,39 +1,22 @@
-// Placeholder functions to simulate API calls
+// I'm replacing the mock API services with real backend calls
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-// --- Wallet Operations ---
-let currentBalance = 2927.00; // Initial dummy balance
-let transactionId = 0;
-const initialTransactions = [
-  {
-    id: ++transactionId,
-    type: 'income',
-    description: 'Simulated Deposit',
-    amount: 50.00,
-    date: '2025-05-23',
-  },
-  {
-    id: ++transactionId,
-    type: 'expense',
-    description: 'Transfer to friend@test.com',
-    amount: -25.00,
-    date: '2025-05-22',
-  },
-  {
-    id: ++transactionId,
-    type: 'income',
-    description: 'Transfer from other@test.com',
-    amount: 100.00,
-    date: '2025-05-20',
-  },
-];
-let transactions = [...initialTransactions];
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('userToken');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
 
 export const getBalance = async () => {
-  console.log("Simulating fetching balance");
-  await delay(300);
-  return { success: true, balance: currentBalance };
+  const response = await fetch(`${API_BASE_URL}/wallet/balance`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+    },
+  });
+  if (!response.ok) {
+    throw new Error('Failed to fetch balance');
+  }
+  return response.json();
 };
 
 export const getHistory = async () => {
