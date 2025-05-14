@@ -49,20 +49,56 @@ export const sendMoney = async (recipient, amount) => {
   return { success: true, message: `Successfully sent ${numericAmount.toFixed(2)}` };
 };
 
-export const addMoney = async (amount) => {
-  console.log(`Simulating adding ${amount}`);
-  await delay(500);
-  const numericAmount = parseFloat(amount);
-  if (isNaN(numericAmount) || numericAmount <= 0) {
-    return { success: false, message: "Invalid amount" };
+// desmoqueo las llamadas a los endpoints de la API
+export const addMoney = async (amount, method, sourceIdentifier) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/wallet/deposit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        method,
+        sourceIdentifier
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to add money');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error adding money:', error);
+    throw error;
   }
-  currentBalance += numericAmount;
-  transactions.push({
-    id: ++transactionId,
-    type: 'income',
-    description: 'Simulated Deposit',
-    amount: numericAmount,
-    date: new Date().toISOString().split('T')[0],
-  });
-  return { success: true, message: `Successfully added ${numericAmount.toFixed(2)}` };
+};
+
+export const withdrawMoney = async (amount, bankAccount) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/wallet/withdraw`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({
+        amount: parseFloat(amount),
+        bankAccount
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to withdraw money');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error withdrawing money:', error);
+    throw error;
+  }
 }; 
