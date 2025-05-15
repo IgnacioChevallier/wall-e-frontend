@@ -101,4 +101,27 @@ export const withdrawMoney = async (amount, bankAccount) => {
     console.error('Error withdrawing money:', error);
     throw error;
   }
+};
+
+export const requestDebin = async (amount) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/wallet/topup/debin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify({ amount: parseFloat(amount) })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to process DEBIN request');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error processing DEBIN request:', error);
+    throw error;
+  }
 }; 

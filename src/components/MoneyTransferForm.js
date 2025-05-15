@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { addMoney, withdrawMoney } from '../services/api';
+import { addMoney, withdrawMoney, requestDebin } from '../services/api';
 import { toast } from 'react-toastify';
 
 const PaymentMethod = {
   BANK_ACCOUNT: 'BANK_ACCOUNT',
-  CREDIT_CARD: 'CREDIT_CARD',
-  DEBIT_CARD: 'DEBIT_CARD'
+  DEBIN: 'DEBIN'
 };
 
 const MoneyTransferForm = ({ onSuccess }) => {
@@ -21,8 +20,13 @@ const MoneyTransferForm = ({ onSuccess }) => {
 
     try {
       if (isDeposit) {
-        const result = await addMoney(amount, method, sourceIdentifier);
-        toast.success('Money added successfully!');
+        if (method === PaymentMethod.DEBIN) {
+          const result = await requestDebin(amount);
+          toast.success('DEBIN request processed successfully!');
+        } else {
+          const result = await addMoney(amount, method, sourceIdentifier);
+          toast.success('Money added successfully!');
+        }
       } else {
         const result = await withdrawMoney(amount, sourceIdentifier);
         toast.success('Withdrawal successful!');
@@ -95,35 +99,48 @@ const MoneyTransferForm = ({ onSuccess }) => {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
               <option value={PaymentMethod.BANK_ACCOUNT}>Bank Account</option>
-              <option value={PaymentMethod.CREDIT_CARD}>Credit Card</option>
-              <option value={PaymentMethod.DEBIT_CARD}>Debit Card</option>
+              <option value={PaymentMethod.DEBIN}>DEBIN (Direct Debit)</option>
             </select>
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            {isDeposit
-              ? method === PaymentMethod.BANK_ACCOUNT
+        {isDeposit && method !== PaymentMethod.DEBIN && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              {method === PaymentMethod.BANK_ACCOUNT
                 ? 'CBU/Alias'
-                : 'Card Number'
-              : 'Destination CBU/Alias'}
-          </label>
-          <input
-            type="text"
-            value={sourceIdentifier}
-            onChange={(e) => setSourceIdentifier(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder={
-              isDeposit
-                ? method === PaymentMethod.BANK_ACCOUNT
+                : 'Card Number'}
+            </label>
+            <input
+              type="text"
+              value={sourceIdentifier}
+              onChange={(e) => setSourceIdentifier(e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder={
+                method === PaymentMethod.BANK_ACCOUNT
                   ? 'Enter CBU or Alias'
                   : 'Enter card number'
-                : 'Enter destination CBU or Alias'
-            }
-            required
-          />
-        </div>
+              }
+              required={method !== PaymentMethod.DEBIN}
+            />
+          </div>
+        )}
+
+        {!isDeposit && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700">
+              Destination CBU/Alias
+            </label>
+            <input
+              type="text"
+              value={sourceIdentifier}
+              onChange={(e) => setSourceIdentifier(e.target.value)}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder="Enter destination CBU or Alias"
+              required
+            />
+          </div>
+        )}
 
         <button
           type="submit"
@@ -132,7 +149,14 @@ const MoneyTransferForm = ({ onSuccess }) => {
             loading ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
-          {loading ? 'Processing...' : isDeposit ? 'Add Money' : 'Withdraw'}
+          {loading 
+            ? 'Processing...' 
+            : isDeposit 
+              ? method === PaymentMethod.DEBIN 
+                ? 'Request DEBIN' 
+                : 'Add Money' 
+              : 'Withdraw'
+          }
         </button>
       </form>
     </div>
