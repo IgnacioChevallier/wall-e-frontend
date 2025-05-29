@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { sendMoney } from '../services/api';
+import { useTransactions } from '../hooks/useTransactions';
+import { useWallet } from '../hooks/useWallet';
 import Input from '../components/Common/Input';
 import Button from '../components/Common/Button';
 import FeedbackMessage from '../components/Common/FeedbackMessage';
 
 const SendMoneyPage = () => {
-  const [recipient, setRecipient] = useState('');
+  const [recipientAlias, setRecipientAlias] = useState('');
   const [amount, setAmount] = useState('');
   const [feedback, setFeedback] = useState({ message: '', type: '' });
   const [loading, setLoading] = useState(false);
+
+  const { transferMoney } = useTransactions();
+  const { refetchBalance } = useWallet();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,11 +20,13 @@ const SendMoneyPage = () => {
     setFeedback({ message: '', type: '' });
 
     try {
-      const response = await sendMoney(recipient, amount);
+      const response = await transferMoney(recipientAlias, amount);
       if (response.success) {
         setFeedback({ message: response.message || 'Transfer successful!', type: 'success' });
-        setRecipient(''); // Clear fields on success
+        setRecipientAlias(''); // Clear fields on success
         setAmount('');
+        // Refresh balance after successful transfer
+        refetchBalance();
       } else {
         setFeedback({ message: response.message || 'Transfer failed', type: 'error' });
       }
@@ -39,13 +45,13 @@ const SendMoneyPage = () => {
         <FeedbackMessage message={feedback.message} type={feedback.type} />
         <form onSubmit={handleSubmit}>
             <div>
-            <label htmlFor="recipient">Recipient (Email or ID)</label>
+            <label htmlFor="recipientAlias">Recipient Alias</label>
             <Input
                 type="text"
-                id="recipient"
-                value={recipient}
-                onChange={(e) => setRecipient(e.target.value)}
-                placeholder="Enter recipient's email or ID"
+                id="recipientAlias"
+                value={recipientAlias}
+                onChange={(e) => setRecipientAlias(e.target.value)}
+                placeholder="Enter recipient's alias"
                 required
             />
             </div>
@@ -61,7 +67,7 @@ const SendMoneyPage = () => {
                 step="0.01" min="0.01"
             />
             </div>
-            <Button type="submit" disabled={loading || !recipient || !amount || parseFloat(amount) <= 0}>
+            <Button type="submit" disabled={loading || !recipientAlias || !amount || parseFloat(amount) <= 0}>
             {loading ? 'Sending...' : 'Send'}
             </Button>
         </form>
@@ -70,4 +76,4 @@ const SendMoneyPage = () => {
   );
 };
 
-export default SendMoneyPage; 
+export default SendMoneyPage;

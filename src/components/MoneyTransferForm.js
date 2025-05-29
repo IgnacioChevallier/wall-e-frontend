@@ -1,166 +1,147 @@
 import React, { useState } from 'react';
-import { addMoney, withdrawMoney, requestDebin } from '../services/api';
-import { toast } from 'react-toastify';
-
-const PaymentMethod = {
-  BANK_ACCOUNT: 'BANK_ACCOUNT',
-  DEBIN: 'DEBIN'
-};
+import { useWalletOperations } from '../hooks/useWalletOperations';
+import { PAYMENT_METHODS } from '../constants';
+import Button from './Common/Button';
+import Input from './Common/Input';
+import FeedbackMessage from './Common/FeedbackMessage';
 
 const MoneyTransferForm = ({ onSuccess }) => {
   const [isDeposit, setIsDeposit] = useState(true);
   const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState(PaymentMethod.BANK_ACCOUNT);
+  const [method, setMethod] = useState(PAYMENT_METHODS.BANK_ACCOUNT);
   const [sourceIdentifier, setSourceIdentifier] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState({ message: '', type: '' });
+
+  const { loading, deposit, withdraw } = useWalletOperations();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setFeedback({ message: '', type: '' });
 
     try {
+      let result;
       if (isDeposit) {
-        if (method === PaymentMethod.DEBIN) {
-          const result = await requestDebin(amount);
-          toast.success('DEBIN request processed successfully!');
-        } else {
-          const result = await addMoney(amount, method, sourceIdentifier);
-          toast.success('Money added successfully!');
+        result = await deposit(amount, method, sourceIdentifier);
+        if (result.success) {
+          setFeedback({ 
+            message: method === PAYMENT_METHODS.DEBIN 
+              ? 'DEBIN request processed successfully!' 
+              : 'Money added successfully!', 
+            type: 'success' 
+          });
         }
       } else {
-        const result = await withdrawMoney(amount, sourceIdentifier);
-        toast.success('Withdrawal successful!');
+        result = await withdraw(amount, sourceIdentifier);
+        if (result.success) {
+          setFeedback({ message: 'Withdrawal successful!', type: 'success' });
+        }
       }
-      
-      // Clear form
-      setAmount('');
-      setSourceIdentifier('');
-      
-      if (onSuccess) {
-        onSuccess();
+
+      if (result.success) {
+        // Clear form
+        setAmount('');
+        setSourceIdentifier('');
+        
+        if (onSuccess) {
+          onSuccess();
+        }
+      } else {
+        setFeedback({ message: result.message, type: 'error' });
       }
     } catch (error) {
-      toast.error(error.message || 'Operation failed. Please try again.');
-    } finally {
-      setLoading(false);
+      setFeedback({ message: 'Operation failed. Please try again.', type: 'error' });
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <div className="flex gap-4 mb-6">
-        <button
-          className={`flex-1 py-2 px-4 rounded ${
-            isDeposit
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
+    <div className="card">
+      <FeedbackMessage message={feedback.message} type={feedback.type} />
+      
+      <div className="button-group">
+        <Button
+          variant={isDeposit ? 'primary' : 'secondary'}
           onClick={() => setIsDeposit(true)}
         >
           Deposit
-        </button>
-        <button
-          className={`flex-1 py-2 px-4 rounded ${
-            !isDeposit
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
+        </Button>
+        <Button
+          variant={!isDeposit ? 'primary' : 'secondary'}
           onClick={() => setIsDeposit(false)}
         >
           Withdraw
-        </button>
+        </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Amount
-          </label>
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Enter amount"
-            required
-            min="0"
-            step="0.01"
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="form">
+        <Input
+          label="Amount"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Enter amount"
+          required
+          min="0"
+          step="0.01"
+        />
 
         {isDeposit && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Payment Method
-            </label>
+          <div className="form-group">
+            <label className="label">Payment Method</label>
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className="select"
             >
-              <option value={PaymentMethod.BANK_ACCOUNT}>Bank Account</option>
-              <option value={PaymentMethod.DEBIN}>DEBIN (Direct Debit)</option>
+              <option value={PAYMENT_METHODS.BANK_ACCOUNT}>Bank Account</option>
+              <option value={PAYMENT_METHODS.DEBIN}>DEBIN (Direct Debit)</option>
             </select>
           </div>
         )}
 
-        {isDeposit && method !== PaymentMethod.DEBIN && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {method === PaymentMethod.BANK_ACCOUNT
-                ? 'CBU/Alias'
-                : 'Card Number'}
-            </label>
-            <input
-              type="text"
-              value={sourceIdentifier}
-              onChange={(e) => setSourceIdentifier(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder={
-                method === PaymentMethod.BANK_ACCOUNT
-                  ? 'Enter CBU or Alias'
-                  : 'Enter card number'
-              }
-              required={method !== PaymentMethod.DEBIN}
-            />
-          </div>
+        {isDeposit && method !== PAYMENT_METHODS.DEBIN && (
+          <Input
+            label={method === PAYMENT_METHODS.BANK_ACCOUNT ? 'CBU/Alias' : 'Card Number'}
+            type="text"
+            value={sourceIdentifier}
+            onChange={(e) => setSourceIdentifier(e.target.value)}
+            placeholder={
+              method === PAYMENT_METHODS.BANK_ACCOUNT
+                ? 'Enter CBU or Alias'
+                : 'Enter card number'
+            }
+            required={method !== PAYMENT_METHODS.DEBIN}
+          />
         )}
 
         {!isDeposit && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Destination CBU/Alias
-            </label>
-            <input
-              type="text"
-              value={sourceIdentifier}
-              onChange={(e) => setSourceIdentifier(e.target.value)}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              placeholder="Enter destination CBU or Alias"
-              required
-            />
-          </div>
+          <Input
+            label="Destination CBU/Alias"
+            type="text"
+            value={sourceIdentifier}
+            onChange={(e) => setSourceIdentifier(e.target.value)}
+            placeholder="Enter destination CBU or Alias"
+            required
+          />
         )}
 
-        <button
+        <Button
           type="submit"
+          variant="primary"
           disabled={loading}
-          className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-            loading ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
+          className="submit-button"
         >
           {loading 
             ? 'Processing...' 
             : isDeposit 
-              ? method === PaymentMethod.DEBIN 
+              ? method === PAYMENT_METHODS.DEBIN 
                 ? 'Request DEBIN' 
                 : 'Add Money' 
               : 'Withdraw'
           }
-        </button>
+        </Button>
       </form>
     </div>
   );
 };
 
-export default MoneyTransferForm; 
+export default MoneyTransferForm;
