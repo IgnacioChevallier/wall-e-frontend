@@ -17,6 +17,9 @@ export const API_CONFIG = {
       BASE: '/transactions',
       P2P: '/transactions/p2p',
     },
+    USERS: {
+      ALIASES: '/users/aliases',
+    },
   },
 };
 

@@ -19,16 +19,62 @@ import HistoryPage from './pages/HistoryPage';
 import SendMoneyPage from './pages/SendMoneyPage';
 import AddMoneyPage from './pages/AddMoneyPage';
 
+// Loading Spinner Component
+const LoadingSpinner = () => {
+  const styles = {
+    loadingAuth: {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+      width: '100vw',
+      backgroundColor: '#f8f9fa',
+    },
+    spinner: {
+      width: '40px',
+      height: '40px',
+      border: '4px solid rgba(0, 0, 0, 0.1)',
+      borderRadius: '50%',
+      borderTop: '4px solid #3498db',
+      animation: 'spin 1s linear infinite',
+    },
+  };
+
+  // Add the keyframes animation to the document
+  React.useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(styleElement);
+
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
+  return (
+    <div style={styles.loadingAuth}>
+      <div style={styles.spinner}></div>
+    </div>
+  );
+};
+
 // Protected Route Component
 const ProtectedRoute = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, authChecked, loading } = useAuth();
   const location = useLocation();
 
+  // Show loading while authentication is being checked
+  if (!authChecked || loading) {
+    return <LoadingSpinner />;
+  }
+
+  // Only redirect if we've completed the auth check and user is not logged in
   if (!isLoggedIn) {
-    // Redirect them to the /login page, but save the current location they were
-    // trying to go to when they were redirected. This allows us to send them
-    // along to that page after they login, which is a nicer user experience
-    // than dropping them off on the home page.
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -44,7 +90,12 @@ const ProtectedRoute = () => {
 };
 
 function App() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, authChecked, loading } = useAuth();
+
+  // Don't render routes until auth check is complete
+  if (!authChecked) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <Routes>

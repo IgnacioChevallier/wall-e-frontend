@@ -1,12 +1,19 @@
 import { useState, useEffect } from 'react';
 import { walletApi } from '../services/walletApi';
 
-export const useWallet = () => {
-  const [balance, setBalance] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+interface UseWalletResult {
+  balance: number;
+  loading: boolean;
+  error: string | null;
+  refetchBalance: () => Promise<void>;
+}
 
-  const fetchBalance = async () => {
+export const useWallet = (): UseWalletResult => {
+  const [balance, setBalance] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchBalance = async (): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
@@ -17,7 +24,8 @@ export const useWallet = () => {
         setError(result.message);
       }
     } catch (err) {
-      setError(err.message);
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -33,4 +41,4 @@ export const useWallet = () => {
     error,
     refetchBalance: fetchBalance
   };
-};
+}; 

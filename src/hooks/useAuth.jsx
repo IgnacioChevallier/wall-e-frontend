@@ -9,6 +9,8 @@ export const AuthProvider = ({children}) => {
     const [error, setError] = useState(null);
     const [justLoggedIn, setJustLoggedIn] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authChecked, setAuthChecked] = useState(false);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     const {login: loginUser, loading: loginLoading, error: loginError} = useLogin();
@@ -18,6 +20,7 @@ export const AuthProvider = ({children}) => {
     useEffect(() => {
         const checkAuthStatus = async () => {
             try {
+                setLoading(true);
                 const response = await fetch('http://localhost:3000/auth/check-auth', {
                     credentials: 'include',
                 });
@@ -26,6 +29,9 @@ export const AuthProvider = ({children}) => {
             } catch (err) {
                 setIsAuthenticated(false);
                 console.error('Auth check error:', err);
+            } finally {
+                setAuthChecked(true);
+                setLoading(false);
             }
         };
         
@@ -34,6 +40,7 @@ export const AuthProvider = ({children}) => {
 
     const login = async (email, password) => {
         try {
+            setLoading(true);
             const response = await loginUser(email, password);
             if (response.success) {
                 setIsAuthenticated(true);
@@ -47,11 +54,14 @@ export const AuthProvider = ({children}) => {
             console.error('Login error:', err);
             setError('An unexpected error occurred during login.');
             return {success: false, message: 'An unexpected error occurred during login.'};
+        } finally {
+            setLoading(false);
         }
     };
 
     const register = async (email, password) => {
         try {
+            setLoading(true);
             const response = await registerUser(email, password);
             if (response.success) {
                 navigate('/login');
@@ -64,50 +74,52 @@ export const AuthProvider = ({children}) => {
             console.error('Registration error:', err);
             setError('An unexpected error occurred during registration.');
             return {success: false, message: 'An unexpected error occurred during registration.'};
+        } finally {
+            setLoading(false);
         }
     };
 
     const logout = async () => {
         try {
+            setLoading(true);
             await fetch('http://localhost:3000/auth/logout', {
                 method: 'POST',
-                credentials: 'include', // Important for cookies
+                credentials: 'include',
             });
         } catch (err) {
             console.error('Logout error:', err);
         } finally {
             setIsAuthenticated(false);
             setJustLoggedIn(false);
+            setLoading(false);
             navigate('/login');
         }
     };
 
-    // Effect to handle navigation after login
     useEffect(() => {
         if (justLoggedIn && isAuthenticated) {
-            navigate('/'); // Redirect to home
-            setJustLoggedIn(false); // Reset the flag
+            navigate('/');
+            setJustLoggedIn(false);
         }
     }, [justLoggedIn, isAuthenticated, navigate]);
 
-    // Memoize the context value to prevent unnecessary re-renders
     const value = useMemo(
         () => ({
             isLoggedIn: isAuthenticated,
-            loading: loginLoading || registerLoading,
+            authChecked,
+            loading: loading || loginLoading || registerLoading,
             error: error || loginError || registerError,
             login,
             register,
             logout,
-            clearError: () => setError(null), // Function to clear errors manually if needed
+            clearError: () => setError(null),
         }),
-        [isAuthenticated, loginLoading, registerLoading, error, loginError, registerError] // Dependencies
+        [isAuthenticated, authChecked, loading, loginLoading, registerLoading, error, loginError, registerError]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use the auth context
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {
