@@ -19,12 +19,14 @@ export const useLogin = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        return new Error(errorData.message || 'Login failed');
+        setError(errorData.message || 'Login failed');
+        return { success: false, message: errorData.message || 'Login failed' };
       }
 
       const data = await response.json();

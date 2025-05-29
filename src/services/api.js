@@ -1,13 +1,9 @@
 // I'm replacing the mock API services with real backend calls
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('userToken');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-};
-
 export const getBalance = async () => {
   const response = await fetch(`${API_BASE_URL}/wallet/balance`, {
+    credentials: 'include', // Important for cookies
     headers: {
       'Content-Type': 'application/json',
       ...getAuthHeaders(),
@@ -54,9 +50,9 @@ export const addMoney = async (amount, method, sourceIdentifier) => {
   try {
     const response = await fetch(`${API_BASE_URL}/wallet/deposit`, {
       method: 'POST',
+      credentials: 'include', // Important for cookies
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
       },
       body: JSON.stringify({
         amount: parseFloat(amount),
@@ -81,9 +77,9 @@ export const withdrawMoney = async (amount, bankAccount) => {
   try {
     const response = await fetch(`${API_BASE_URL}/wallet/withdraw`, {
       method: 'POST',
+      credentials: 'include', // Important for cookies
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
       },
       body: JSON.stringify({
         amount: parseFloat(amount),
@@ -107,9 +103,9 @@ export const requestDebin = async (amount) => {
   try {
     const response = await fetch(`${API_BASE_URL}/wallet/topup/debin`, {
       method: 'POST',
+      credentials: 'include', // Important for cookies
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
       },
       body: JSON.stringify({ amount: parseFloat(amount) })
     });

@@ -6,21 +6,38 @@ import {useRegister} from './useRegister';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({children}) => {
-    const [userToken, setUserToken] = useState(localStorage.getItem('userToken')); // Persist token
     const [error, setError] = useState(null);
-    const [justLoggedIn, setJustLoggedIn] = useState(false); // Added state
+    const [justLoggedIn, setJustLoggedIn] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigate = useNavigate();
 
     const {login: loginUser, loading: loginLoading, error: loginError} = useLogin();
     const {register: registerUser, loading: registerLoading, error: registerError} = useRegister();
 
+    
+    useEffect(() => {
+        const checkAuthStatus = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/auth/check-auth', {
+                    credentials: 'include',
+                });
+                
+                setIsAuthenticated(response.ok);
+            } catch (err) {
+                setIsAuthenticated(false);
+                console.error('Auth check error:', err);
+            }
+        };
+        
+        checkAuthStatus();
+    }, []);
+
     const login = async (email, password) => {
         try {
             const response = await loginUser(email, password);
             if (response.success) {
-                setUserToken(response.data.access_token);
-                localStorage.setItem('userToken', response.data.access_token); // Store token
-                setJustLoggedIn(true); // Set flag instead of direct navigation
+                setIsAuthenticated(true);
+                setJustLoggedIn(true);
                 return {success: true};
             } else {
                 setError(response.message);
@@ -37,7 +54,7 @@ export const AuthProvider = ({children}) => {
         try {
             const response = await registerUser(email, password);
             if (response.success) {
-                navigate('/login'); // Redirect to login on successful registration
+                navigate('/login');
                 return {success: true, message: response.message};
             } else {
                 setError(response.message);
@@ -50,26 +67,33 @@ export const AuthProvider = ({children}) => {
         }
     };
 
-    const logout = () => {
-        setUserToken(null);
-        localStorage.removeItem('userToken'); // Remove token
-        setJustLoggedIn(false); // Reset flag on logout
-        navigate('/login'); // Redirect to login on logout
+    const logout = async () => {
+        try {
+            await fetch('http://localhost:3000/auth/logout', {
+                method: 'POST',
+                credentials: 'include', // Important for cookies
+            });
+        } catch (err) {
+            console.error('Logout error:', err);
+        } finally {
+            setIsAuthenticated(false);
+            setJustLoggedIn(false);
+            navigate('/login');
+        }
     };
 
     // Effect to handle navigation after login
     useEffect(() => {
-        if (justLoggedIn && userToken) {
+        if (justLoggedIn && isAuthenticated) {
             navigate('/'); // Redirect to home
             setJustLoggedIn(false); // Reset the flag
         }
-    }, [justLoggedIn, userToken, navigate]);
+    }, [justLoggedIn, isAuthenticated, navigate]);
 
     // Memoize the context value to prevent unnecessary re-renders
     const value = useMemo(
         () => ({
-            isLoggedIn: !!userToken,
-            userToken,
+            isLoggedIn: isAuthenticated,
             loading: loginLoading || registerLoading,
             error: error || loginError || registerError,
             login,
@@ -77,7 +101,7 @@ export const AuthProvider = ({children}) => {
             logout,
             clearError: () => setError(null), // Function to clear errors manually if needed
         }),
-        [userToken, loginLoading, registerLoading, error, loginError, registerError] // Dependencies
+        [isAuthenticated, loginLoading, registerLoading, error, loginError, registerError] // Dependencies
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

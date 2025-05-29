@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 
 export const useRegister = () => {
@@ -20,12 +19,14 @@ export const useRegister = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        return new Error(errorData.message || 'Registration failed');
+        setError(errorData.message || 'Registration failed');
+        return { success: false, message: errorData.message || 'Registration failed' };
       }
 
       const data = await response.json();
