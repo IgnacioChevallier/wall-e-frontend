@@ -1,43 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { getHistory } from '../services/api';
+import React from 'react';
+import { useTransactions } from '../hooks/useTransactions';
+import { formatCurrencyWithSign, formatDate } from '../utils';
 import { FiArrowUpCircle, FiArrowDownCircle } from 'react-icons/fi';
 
 const HistoryPage = () => {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getHistory();
-        if (response.success) {
-          setHistory(response.history);
-        } else {
-          setError('Failed to fetch transaction history');
-        }
-      } catch (err) {
-        setError('An error occurred while fetching history');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHistory();
-  }, []);
-
-  const formatCurrency = (amount) => {
-    const value = Math.abs(amount).toFixed(2);
-    return amount >= 0 ? `+$${value}` : `-$${value}`;
-  };
-
-  const formatDate = (dateString) => {
-    const options = { month: 'short', day: 'numeric' }; // e.g., "May 11"
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  }
+  const { transactions: history, loading, error } = useTransactions();
 
   return (
     <div className="history-page">
@@ -64,7 +31,7 @@ const HistoryPage = () => {
                  </div>
               </div>
               <span className={`amount ${item.type}`}>
-                {formatCurrency(item.amount)}
+                {formatCurrencyWithSign(item.amount)}
               </span>
             </li>
           ))}
@@ -74,4 +41,4 @@ const HistoryPage = () => {
   );
 };
 
-export default HistoryPage; 
+export default HistoryPage;

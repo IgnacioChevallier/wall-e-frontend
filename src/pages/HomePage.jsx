@@ -1,39 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { getBalance } from '../services/api';
+import { useWallet } from '../hooks/useWallet';
+import { formatCurrency } from '../utils';
 import Button from '../components/Common/Button';
 
 const HomePage = () => {
-  const [balance, setBalance] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchBalance = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getBalance();
-        if (response.success) {
-          setBalance(response.balance);
-        } else {
-          setError('Failed to fetch balance');
-        }
-      } catch (err) {
-        setError('An error occurred while fetching balance');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBalance();
-  }, []);
-
-  const formatCurrency = (amount) => {
-    if (amount === null || amount === undefined) return '...';
-    // Format without $ sign, assuming currency symbol is handled elsewhere if needed
-    return amount.toFixed(2);
-  };
+  const { balance, loading, error } = useWallet();
 
   return (
     <div className="home-page">
@@ -46,7 +18,7 @@ const HomePage = () => {
         {balance !== null && (
           <>
             <p>Current balance</p> {/* Label like in screenshot */}
-            <h1>${formatCurrency(balance)}</h1> {/* Add currency symbol here */}
+            <h1>{formatCurrency(balance)}</h1> {/* Use utility function for formatting */}
           </>
         )}
       </div>
@@ -64,4 +36,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage; 
+export default HomePage;
